@@ -6,15 +6,13 @@ All notable changes to this project are documented here. The format follows
 
 ## [Unreleased]
 
+## [0.1.1] - 2026-10-16
+
 ### Added
 - One-line installer (`install.sh`) with install, uninstall and build-from-source modes.
 - GitHub Actions release workflow that builds and attaches the universal DMG and a SHA-256 checksum.
 - README screenshots rendered from the real UI (`Usami --render-previews`).
 - Project documentation: how it works, privacy, troubleshooting, FAQ, contributing and security policy.
-
-## [0.1.1] - 2026-10-16
-
-### Added
 - Chevron trigger icon placed to the left of the selection, with **blue outline** and **solid** styles.
 - Minimal card that follows the system light/dark theme and opens below the selection.
 - App icon.
