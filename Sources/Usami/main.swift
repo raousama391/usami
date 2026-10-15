@@ -11,7 +11,8 @@ if let flag = CommandLine.arguments.firstIndex(of: "--render-previews") {
 if let flag = CommandLine.arguments.firstIndex(of: "--render-demo") {
     let directory = CommandLine.arguments.count > flag + 1 ? CommandLine.arguments[flag + 1] : "."
     let debug = CommandLine.arguments.contains("--debug-frames")
-    MainActor.assumeIsolated { renderDemo(to: directory, debug: debug) }
+    let white = CommandLine.arguments.contains("--white-background")
+    MainActor.assumeIsolated { renderDemo(to: directory, debug: debug, whiteBackground: white) }
     exit(0)
 }
 

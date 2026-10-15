@@ -68,6 +68,8 @@ private let originalLines = [
 private struct DemoScene: View {
     let state: DemoState
     let model: PopupModel
+    /// Plain white backdrop (for social posts) instead of the soft gradient desktop.
+    var whiteBackground = false
 
     private func width(_ text: String) -> CGFloat {
         (text as NSString).size(withAttributes: [.font: Geo.font]).width
@@ -76,10 +78,14 @@ private struct DemoScene: View {
     var body: some View {
         ZStack(alignment: .topLeading) {
             // Desktop backdrop
-            LinearGradient(
-                colors: [Color(red: 0.86, green: 0.89, blue: 0.97), Color(red: 0.93, green: 0.88, blue: 0.96)],
-                startPoint: .topLeading, endPoint: .bottomTrailing
-            )
+            if whiteBackground {
+                Color.white
+            } else {
+                LinearGradient(
+                    colors: [Color(red: 0.86, green: 0.89, blue: 0.97), Color(red: 0.93, green: 0.88, blue: 0.96)],
+                    startPoint: .topLeading, endPoint: .bottomTrailing
+                )
+            }
 
             // App window
             VStack(spacing: 0) {
@@ -102,7 +108,11 @@ private struct DemoScene: View {
             }
             .frame(width: 600, height: 360)
             .clipShape(RoundedRectangle(cornerRadius: 11, style: .continuous))
-            .shadow(color: .black.opacity(0.18), radius: 14, y: 6)
+            .overlay(
+                RoundedRectangle(cornerRadius: 11, style: .continuous)
+                    .strokeBorder(Color.black.opacity(whiteBackground ? 0.14 : 0), lineWidth: 1)
+            )
+            .shadow(color: .black.opacity(whiteBackground ? 0.10 : 0.18), radius: whiteBackground ? 10 : 14, y: 5)
             .offset(x: 20, y: 20)
 
             // Text with the progressive selection
@@ -242,6 +252,10 @@ private final class DemoBuilder {
     private(set) var frames: [(image: CGImage, delay: Double)] = []
     private var lastKey: String?
     var debugDirectory: String?
+    var whiteBackground = false
+    /// When set, the frame with this tag is also written as a PNG still to `stillURL`.
+    var stillTag: String?
+    var stillURL: URL?
     private var debugCount = 0
 
     init() {
@@ -262,7 +276,10 @@ private final class DemoBuilder {
                 action: card.action, isLoading: card.loading
             )
         }
-        let renderer = ImageRenderer(content: DemoScene(state: state, model: model).environment(\.colorScheme, .light))
+        let renderer = ImageRenderer(
+            content: DemoScene(state: state, model: model, whiteBackground: whiteBackground)
+                .environment(\.colorScheme, .light)
+        )
         renderer.scale = 1.5
         return renderer.cgImage
     }
@@ -270,6 +287,10 @@ private final class DemoBuilder {
     /// Adds a frame shown for `seconds`. Identical consecutive frames are merged.
     func frame(_ state: DemoState, seconds: Double, tag: String? = nil) {
         guard let image = render(state) else { return }
+        if let tag, tag == stillTag, let stillURL {
+            let rep = NSBitmapImageRep(cgImage: image)
+            try? rep.representation(using: .png, properties: [:])?.write(to: stillURL)
+        }
         if let debugDirectory, let tag {
             let rep = NSBitmapImageRep(cgImage: image)
             if let png = rep.representation(using: .png, properties: [:]) {
@@ -437,7 +458,7 @@ private final class DemoBuilder {
 // MARK: - GIF writer
 
 @MainActor
-func renderDemo(to directory: String, debug: Bool) {
+func renderDemo(to directory: String, debug: Bool, whiteBackground: Bool = false) {
     _ = NSApplication.shared
     let appearance = NSAppearance(named: .aqua)
     NSApp.appearance = appearance
@@ -447,11 +468,17 @@ func renderDemo(to directory: String, debug: Bool) {
 
     try? FileManager.default.createDirectory(atPath: directory, withIntermediateDirectories: true)
     let builder = DemoBuilder()
+    builder.whiteBackground = whiteBackground
     if debug { builder.debugDirectory = directory }
+    let name = whiteBackground ? "demo-white" : "demo"
+    if whiteBackground {
+        builder.stillTag = "improve"
+        builder.stillURL = URL(fileURLWithPath: directory).appendingPathComponent("usage-white.png")
+    }
     builder.build()
 
     guard let destination = CGImageDestinationCreateWithURL(
-        URL(fileURLWithPath: directory).appendingPathComponent("demo.gif") as CFURL,
+        URL(fileURLWithPath: directory).appendingPathComponent("\(name).gif") as CFURL,
         UTType.gif.identifier as CFString, builder.frames.count, nil
     ) else {
         print("could not create demo.gif")
@@ -467,7 +494,7 @@ func renderDemo(to directory: String, debug: Bool) {
     }
     if CGImageDestinationFinalize(destination) {
         let total = builder.frames.reduce(0) { $0 + $1.delay }
-        print("wrote demo.gif — \(builder.frames.count) frames, \(String(format: "%.1f", total))s")
+        print("wrote \(name).gif — \(builder.frames.count) frames, \(String(format: "%.1f", total))s")
     } else {
         print("failed to write demo.gif")
     }

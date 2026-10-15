@@ -31,6 +31,7 @@ tail -f ~/Library/Logs/Usami.log                                  # selection/pe
 Usami.app/Contents/MacOS/Usami --update                           # check and install (copy must be in ~/Applications or /Applications)
 swift build && .build/debug/Usami --render-previews docs/images   # refresh README screenshots
 swift build && .build/debug/Usami --render-demo docs/images       # re-render the README demo GIF (add --debug-frames for PNG keyframes)
+swift build && .build/debug/Usami --render-demo social --white-background   # demo-white.gif + usage-white.png on a plain white background
 swift scripts/make_icon.swift assets && iconutil -c icns assets/AppIcon.iconset -o assets/AppIcon.icns
 ```
 
