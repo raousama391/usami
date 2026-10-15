@@ -6,7 +6,7 @@ cd "$(dirname "$0")/.."
 ROOT="$(pwd)"
 APP_NAME="Usami"
 BUNDLE_ID="io.prodify.usami"
-VERSION="${VERSION:-0.1.3}"
+VERSION="${VERSION:-0.1.4}"
 BUILD="$ROOT/build"
 APP="$BUILD/$APP_NAME.app"
 
