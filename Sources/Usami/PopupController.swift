@@ -19,18 +19,40 @@ final class PopupController {
     /// Whether the expanded card sits below the selection (top edge fixed) or above it (bottom edge fixed).
     private var cardBelow = true
 
-    // Sticky card: once opened, only the ✕ (or Accept) closes it, and it follows its source window.
+    // Sticky card: once opened, only the ✕ (or Accept) closes it. It belongs to the window where the
+    // text was selected — it follows that window, can be dragged, and is only visible while that
+    // window is the one in front on the current Space.
     private var cardOpen = false
+    private var isDragging = false
     private var sourcePID: pid_t = 0
     private var sourceWindow: AXUIElement?
     private var offsetFromWindow = CGSize.zero
     private var trackTimer: Timer?
+    /// The last app that was frontmost other than Usami itself (opening a menu activates Usami,
+    /// and that must not make the card appear over some other app).
+    private var lastExternalFrontPID: pid_t = 0
+
+    var isCardOpen: Bool { cardOpen }
 
     init() {
         model.onLayoutChange = { [weak self] in self?.scheduleResize() }
         model.onExpand = { [weak self] in self?.cardOpened() }
+        model.onDragBegan = { [weak self] in self?.isDragging = true }
+        model.onDragEnded = { [weak self] in self?.dragEnded() }
         model.onClose = { [weak self] in self?.hide() }
         model.onAccept = { [weak self] info, text in self?.accept(info, text) }
+
+        let ownPID = ProcessInfo.processInfo.processIdentifier
+        if let front = NSWorkspace.shared.frontmostApplication, front.processIdentifier != ownPID {
+            lastExternalFrontPID = front.processIdentifier
+        }
+        NSWorkspace.shared.notificationCenter.addObserver(
+            forName: NSWorkspace.didActivateApplicationNotification, object: nil, queue: .main
+        ) { [weak self] note in
+            guard let app = note.userInfo?[NSWorkspace.applicationUserInfoKey] as? NSRunningApplication,
+                  app.processIdentifier != ownPID else { return }
+            MainActor.assumeIsolated { self?.lastExternalFrontPID = app.processIdentifier }
+        }
     }
 
     var isVisible: Bool { panel?.isVisible == true }
@@ -71,6 +93,7 @@ final class PopupController {
     func hide() {
         stopTracking()
         cardOpen = false
+        isDragging = false
         panel?.orderOut(nil)
         shownText = nil
         selection = nil
@@ -97,7 +120,9 @@ final class PopupController {
         )
         panel.isFloatingPanel = true
         panel.level = .statusBar
-        panel.collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary, .stationary]
+        // Deliberately NOT .canJoinAllSpaces: the panel lives only on the Space where it was
+        // opened, so switching desktops leaves it behind instead of carrying it along.
+        panel.collectionBehavior = [.fullScreenAuxiliary]
         panel.backgroundColor = .clear
         panel.isOpaque = false
         panel.hasShadow = true
@@ -116,6 +141,7 @@ final class PopupController {
     private func cardOpened() {
         cardOpen = true
         sourcePID = selection?.app?.processIdentifier ?? 0
+        if sourcePID != 0 { lastExternalFrontPID = sourcePID }
         if let element = selection?.element, sourcePID != 0 {
             sourceWindow = AXText.window(containing: element, pid: sourcePID)
         } else {
@@ -125,6 +151,13 @@ final class PopupController {
             self?.placeCard()
             self?.startTracking()
         }
+    }
+
+    private func dragEnded() {
+        isDragging = false
+        // The user chose this spot: grow downward from here and remember it relative to the window.
+        cardBelow = true
+        captureWindowOffset()
     }
 
     private func scheduleResize() {
@@ -164,7 +197,7 @@ final class PopupController {
             frame.origin.y = top - size.height
         }
         panel.setFrame(frame, display: true)
-        clampToScreen()
+        if !isDragging { clampToScreen() }
         captureWindowOffset()
     }
 
@@ -214,19 +247,25 @@ final class PopupController {
             return
         }
 
-        // Only show the card while its own window is the one in front.
-        let frontPID = NSWorkspace.shared.frontmostApplication?.processIdentifier
-        var sourceInFront = frontPID == sourcePID || frontPID == ProcessInfo.processInfo.processIdentifier
-        if sourceInFront, frontPID == sourcePID, let window = sourceWindow {
-            sourceInFront = AXText.isFocusedWindow(window, pid: sourcePID) && !AXText.isMinimized(window)
+        // The card is visible only while *its* window is the one in front on the current Space.
+        var visible = lastExternalFrontPID == sourcePID
+        if visible, let window = sourceWindow {
+            visible = AXText.isFocusedWindow(window, pid: sourcePID)
+                && !AXText.isMinimized(window)
+                && AXText.isOnScreen(window, pid: sourcePID)
         }
-        guard sourceInFront else {
+        guard visible else {
             if panel.isVisible { panel.orderOut(nil) }
             return
         }
-        if !panel.isVisible { panel.orderFrontRegardless() }
+        if !panel.isVisible {
+            panel.orderFrontRegardless()
+            resize()   // content may have changed while the card was hidden
+        }
 
-        guard let window = sourceWindow, let point = AXText.windowPosition(window).point else { return }
+        // Follow the window (but never fight the user's drag).
+        guard !isDragging, let window = sourceWindow,
+              let point = AXText.windowPosition(window).point else { return }
         let topLeft = AXText.cocoaPoint(fromAX: point)
         let desired = NSPoint(x: topLeft.x + offsetFromWindow.width, y: topLeft.y + offsetFromWindow.height)
         if abs(desired.x - panel.frame.origin.x) > 0.5 || abs(desired.y - panel.frame.origin.y) > 0.5 {

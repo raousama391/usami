@@ -14,6 +14,8 @@ final class PopupModel: ObservableObject {
 
     var onLayoutChange: (() -> Void)?
     var onExpand: (() -> Void)?
+    var onDragBegan: (() -> Void)?
+    var onDragEnded: (() -> Void)?
     var onClose: (() -> Void)?
     var onAccept: ((SelectionInfo, String) -> Void)?
 

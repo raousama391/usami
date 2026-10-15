@@ -27,6 +27,8 @@ macOS ties the Accessibility grant to the app's code requirement. Builds from `b
 
 ```bash
 tail -f ~/Library/Logs/Usami.log                                  # selection/permission diagnostics
+.build/debug/Usami --check-updates                                # is a newer release available?
+Usami.app/Contents/MacOS/Usami --update                           # check and install (copy must be in ~/Applications or /Applications)
 swift build && .build/debug/Usami --render-previews docs/images   # refresh README screenshots
 swift scripts/make_icon.swift assets && iconutil -c icns assets/AppIcon.iconset -o assets/AppIcon.icns
 ```

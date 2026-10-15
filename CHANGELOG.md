@@ -6,6 +6,20 @@ All notable changes to this project are documented here. The format follows
 
 ## [Unreleased]
 
+## [0.1.3] - 2026-10-16
+
+### Added
+- **In-app updates.** Usami checks GitHub Releases every few hours. Choose in Settings → Updates to be notified, to install automatically, or to never check. The menu bar has **Check for Updates…**, and a one-click **Update to vX.Y.Z** when one is available. Downloads are limited to this repository's releases, verified against the published SHA-256, and swapped in after a restart.
+- **Draggable card.** Drag the card by its header to move it anywhere; it keeps that position relative to its window.
+- `Usami --check-updates` and `Usami --update` command-line modes.
+
+### Changed
+- The card now only appears in the window (and desktop Space) where you selected the text. It no longer follows you to other apps, windows or Spaces, and returns when you go back to its window.
+
+### Fixed
+- The one-line installer failing with `APP_NAME…: unbound variable` under UTF-8 locales on macOS's bash 3.2, now covered by a CI check.
+- A mounted-volume leak in the updater's staging step (found in testing before release).
+
 ## [0.1.2] - 2026-10-16
 
 ### Changed
@@ -37,7 +51,8 @@ All notable changes to this project are documented here. The format follows
 - In-place replacement of the selection with a clipboard-paste fallback.
 - Universal (Apple Silicon + Intel) DMG packaging script.
 
-[Unreleased]: https://github.com/raousama391/usami/compare/v0.1.2...HEAD
+[Unreleased]: https://github.com/raousama391/usami/compare/v0.1.3...HEAD
+[0.1.3]: https://github.com/raousama391/usami/compare/v0.1.2...v0.1.3
 [0.1.2]: https://github.com/raousama391/usami/compare/v0.1.1...v0.1.2
 [0.1.1]: https://github.com/raousama391/usami/releases/tag/v0.1.1
 [0.1.0]: https://github.com/raousama391/usami/releases/tag/v0.1.0

@@ -13,6 +13,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuItemValidation {
         installMainMenu()
         buildStatusItem()
 
+        Updater.shared.isBusy = { [weak self] in self?.popup.isCardOpen ?? false }
+        Updater.shared.start()
+
         monitor.onSelection = { [weak self] info in self?.popup.show(for: info) }
         monitor.onCleared = { [weak self] in self?.popup.selectionCleared() }
 
@@ -90,6 +93,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuItemValidation {
         let settings = NSMenuItem(title: "Settings…", action: #selector(openSettings), keyEquivalent: ",")
         settings.target = self
         menu.addItem(settings)
+
+        let update = NSMenuItem(title: "Check for Updates…", action: #selector(updateAction), keyEquivalent: "")
+        update.target = self
+        menu.addItem(update)
         menu.addItem(.separator())
 
         let quit = NSMenuItem(title: "Quit Usami", action: #selector(quit), keyEquivalent: "q")
@@ -104,6 +111,19 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuItemValidation {
         if menuItem.action == #selector(toggleEnabled) {
             menuItem.state = Settings.shared.enabled ? .on : .off
         }
+        if menuItem.action == #selector(updateAction) {
+            switch Updater.shared.state {
+            case .available(let version):
+                menuItem.title = "⬆︎ Update to v\(version)…"
+                return true
+            case .checking, .downloading, .installing:
+                menuItem.title = "Updating…"
+                return false
+            default:
+                menuItem.title = "Check for Updates…"
+                return true
+            }
+        }
         if menuItem.action == #selector(openAccessibilitySettings) {
             let trusted = AXText.isTrusted()
             menuItem.title = trusted ? "Accessibility: granted ✓" : "⚠️ Fix Accessibility access…"
@@ -111,6 +131,18 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuItemValidation {
             return !trusted
         }
         return true
+    }
+
+    @objc private func updateAction() {
+        let updater = Updater.shared
+        if case .available = updater.state {
+            Task { await updater.install() }
+        } else {
+            Task {
+                await updater.check(userInitiated: true)
+                SettingsWindowController.shared.show()
+            }
+        }
     }
 
     @objc private func openAccessibilitySettings() {

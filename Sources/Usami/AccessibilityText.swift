@@ -116,6 +116,40 @@ enum AXText {
         return (point, false)
     }
 
+    /// Frame of a window in AX/CG global coordinates (origin top-left of the primary screen).
+    static func windowFrame(_ window: AXUIElement) -> CGRect? {
+        guard let origin = windowPosition(window).point else { return nil }
+        var value: CFTypeRef?
+        guard AXUIElementCopyAttributeValue(window, kAXSizeAttribute as CFString, &value) == .success,
+              let value, CFGetTypeID(value) == AXValueGetTypeID() else { return nil }
+        var size = CGSize.zero
+        guard AXValueGetValue(value as! AXValue, .cgSize, &size) else { return nil }
+        return CGRect(origin: origin, size: size)
+    }
+
+    /// Whether the window is on screen in the *current* Space (windows on other Spaces aren't listed).
+    /// Returns true when it can't tell, so a card is never hidden by mistake.
+    static func isOnScreen(_ window: AXUIElement, pid: pid_t) -> Bool {
+        guard let frame = windowFrame(window),
+              let list = CGWindowListCopyWindowInfo([.optionOnScreenOnly, .excludeDesktopElements], kCGNullWindowID)
+                as? [[String: Any]] else { return true }
+        var sawWindowOfApp = false
+        for info in list {
+            guard (info[kCGWindowOwnerPID as String] as? NSNumber)?.int32Value == pid,
+                  (info[kCGWindowLayer as String] as? NSNumber)?.intValue == 0,
+                  let boundsDict = info[kCGWindowBounds as String] as? NSDictionary,
+                  let bounds = CGRect(dictionaryRepresentation: boundsDict as CFDictionary) else { continue }
+            sawWindowOfApp = true
+            if abs(bounds.minX - frame.minX) < 3, abs(bounds.minY - frame.minY) < 3,
+               abs(bounds.width - frame.width) < 3, abs(bounds.height - frame.height) < 3 {
+                return true
+            }
+        }
+        // No on-screen window of this app at all → ours lives on another Space.
+        // If it has windows but none matched exactly (e.g. it moved between the two reads), keep showing.
+        return sawWindowOfApp
+    }
+
     static func isMinimized(_ window: AXUIElement) -> Bool {
         var value: CFTypeRef?
         guard AXUIElementCopyAttributeValue(window, kAXMinimizedAttribute as CFString, &value) == .success,

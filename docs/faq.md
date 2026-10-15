@@ -30,6 +30,9 @@ Claude: `haiku` (fast, default), `sonnet`, `opus`. ChatGPT: the Codex models lis
 ### Is it safe to sign in with my subscription?
 Sign-in tokens are stored in your Keychain and used only to call your provider. Providers' terms differ on third-party use of subscriptions — read yours. Staying logged in to the official `claude` CLI is the most conservative option.
 
+### How do updates work?
+Usami checks GitHub Releases every few hours. In **Settings → Updates** choose **Notify me** (default), **Install automatically**, or **Never check**. You can also use **Check for Updates…** from the menu bar. See [how it works](how-it-works.md#updates).
+
 ### Intel Macs? Older macOS?
 Releases are universal (Apple Silicon and Intel). macOS 14 (Sonoma) or newer is required.
 
