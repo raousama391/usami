@@ -34,7 +34,7 @@ done
 
 # ── Uninstall ───────────────────────────────────────────────────────────────────────────────
 if [ "$MODE" = "uninstall" ]; then
-    step "Uninstalling $APP_NAME…"
+    step "Uninstalling ${APP_NAME}…"
     pkill -x "$APP_NAME" 2>/dev/null || true
     rm -rf "/Applications/$APP_NAME.app" "$HOME/Applications/$APP_NAME.app"
     tccutil reset Accessibility "$BUNDLE_ID" >/dev/null 2>&1 || true
@@ -73,13 +73,13 @@ DMG="$TMP/$APP_NAME.dmg"
 if [ "$MODE" = "source" ]; then
     command -v git   >/dev/null || fail "git not found. Install the Xcode command line tools: xcode-select --install"
     command -v swift >/dev/null || fail "swift not found. Install the Xcode command line tools: xcode-select --install"
-    step "Cloning $REPO…"
+    step "Cloning ${REPO}…"
     git clone --depth 1 "https://github.com/${REPO}.git" "$TMP/src" >/dev/null 2>&1 || fail "Could not clone $REPO."
     step "Building from source (a few minutes)…"
     (cd "$TMP/src" && ./scripts/build_dmg.sh >/dev/null) || fail "Build failed."
     cp "$TMP/src/build/$APP_NAME.dmg" "$DMG"
 else
-    step "Downloading $APP_NAME…"
+    step "Downloading ${APP_NAME}…"
     if ! curl -fL --progress-bar -o "$DMG" "$DMG_URL"; then
         fail "Download failed from $DMG_URL
   No release published yet? Build from source instead:
@@ -95,7 +95,7 @@ else
 fi
 
 # ── Install ─────────────────────────────────────────────────────────────────────────────────
-step "Installing to $DEST…"
+step "Installing to ${DEST}…"
 mkdir -p "$MOUNT"
 hdiutil attach "$DMG" -nobrowse -readonly -quiet -mountpoint "$MOUNT" >/dev/null || fail "Could not open the disk image."
 [ -d "$MOUNT/$APP_NAME.app" ] || fail "$APP_NAME.app not found in the disk image."
