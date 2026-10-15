@@ -7,6 +7,14 @@ if let flag = CommandLine.arguments.firstIndex(of: "--render-previews") {
     exit(0)
 }
 
+// `Usami --render-demo <dir> [--debug-frames]` renders the README demo GIF and exits.
+if let flag = CommandLine.arguments.firstIndex(of: "--render-demo") {
+    let directory = CommandLine.arguments.count > flag + 1 ? CommandLine.arguments[flag + 1] : "."
+    let debug = CommandLine.arguments.contains("--debug-frames")
+    MainActor.assumeIsolated { renderDemo(to: directory, debug: debug) }
+    exit(0)
+}
+
 // `Usami --check-updates` prints whether a newer release exists; `Usami --update` also installs it.
 if CommandLine.arguments.contains("--check-updates") || CommandLine.arguments.contains("--update") {
     let install = CommandLine.arguments.contains("--update")
