@@ -6,6 +6,9 @@ All notable changes to this project are documented here. The format follows
 
 ## [Unreleased]
 
+### Added
+- `Usami --render-demo <dir> --white-background` renders the demo GIF and a still on a plain white background, for sharing.
+
 ## [0.1.4] - 2026-10-16
 
 ### Added
