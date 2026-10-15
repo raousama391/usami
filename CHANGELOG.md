@@ -6,6 +6,9 @@ All notable changes to this project are documented here. The format follows
 
 ## [Unreleased]
 
+### Added
+- Animated demo GIF in the README, rendered from the app's real views (`Usami --render-demo docs/images`).
+
 ## [0.1.3] - 2026-10-16
 
 ### Added

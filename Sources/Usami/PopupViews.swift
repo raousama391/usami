@@ -13,6 +13,11 @@ struct PopupRootView: View {
 
 /// Internal entry points to the file-private views, used only by PreviewRenderer.
 enum PopupPreviewParts {
+    /// Rotation of the static spinner, set per frame by the demo renderer.
+    @MainActor static var spinnerAngle = 0.0
+    /// Minimum height of the card's content area in offscreen renders (0 = natural height).
+    @MainActor static var contentMinHeight: CGFloat = 0
+
     @MainActor static func trigger(_ model: PopupModel) -> some View { TriggerButton(model: model) }
     @MainActor static func card(_ model: PopupModel) -> some View { SuggestionCard(model: model, staticPreview: true) }
 }
@@ -103,6 +108,17 @@ private struct WindowDragHandle: NSViewRepresentable {
     }
 }
 
+/// A plain drawn spinner used in offscreen renders, where AppKit-backed controls can't be drawn.
+private struct StaticSpinner: View {
+    var body: some View {
+        Circle()
+            .trim(from: 0, to: 0.72)
+            .stroke(Color.secondary, style: StrokeStyle(lineWidth: 1.6, lineCap: .round))
+            .frame(width: 12, height: 12)
+            .rotationEffect(.degrees(PopupPreviewParts.spinnerAngle))
+    }
+}
+
 private struct SolidButtonStyle: ButtonStyle {
     func makeBody(configuration: Configuration) -> some View {
         Label(configuration: configuration)
@@ -160,7 +176,7 @@ private struct SuggestionCard: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
             header
-            content
+            framedContent
                 .padding(.horizontal, 14)
                 .padding(.bottom, 12)
             Divider()
@@ -175,6 +191,26 @@ private struct SuggestionCard: View {
                 .strokeBorder(Color.primary.opacity(0.12), lineWidth: 0.5)
         )
         .padding(8)
+    }
+
+    /// For offscreen renders the content area has a fixed height so the card doesn't change size
+    /// between loading and result states (keeps animated cursor targets stable).
+    @ViewBuilder
+    private var framedContent: some View {
+        if staticPreview {
+            content.frame(maxWidth: .infinity, minHeight: PopupPreviewParts.contentMinHeight, alignment: .topLeading)
+        } else {
+            content
+        }
+    }
+
+    @ViewBuilder
+    private var spinner: some View {
+        if staticPreview {
+            StaticSpinner()
+        } else {
+            ProgressView().controlSize(.small)
+        }
     }
 
     private var header: some View {
@@ -211,7 +247,7 @@ private struct SuggestionCard: View {
     private var content: some View {
         if model.isLoading && model.result.isEmpty {
             HStack(spacing: 8) {
-                ProgressView().controlSize(.small)
+                spinner
                 Text(model.action.progressLabel)
                     .font(.system(size: 13))
                     .foregroundStyle(.secondary)
@@ -250,7 +286,7 @@ private struct SuggestionCard: View {
                         .buttonStyle(GhostButtonStyle())
                         .disabled(model.isLoading)
                     Spacer()
-                    if model.isLoading { ProgressView().controlSize(.small) }
+                    if model.isLoading { spinner }
                 }
             }
         }
@@ -271,8 +307,8 @@ private struct SuggestionCard: View {
             tab(.rephrase)
 
             if staticPreview {
-                tabLabel("Translate", active: false)
-                tabLabel("More", active: false)
+                tabLabel("Translate", active: isTranslate)
+                tabLabel("More", active: isMore)
             } else {
                 Menu {
                     ForEach(Settings.languages, id: \.self) { language in

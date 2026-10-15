@@ -19,11 +19,10 @@
 </p>
 
 <p align="center">
-  <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="docs/images/screenshot-dark.png">
-    <img src="docs/images/screenshot-light.png" width="640" alt="Usami grammar and rewrite suggestion card next to selected text on macOS">
-  </picture>
+  <img src="docs/images/demo.gif" width="720" alt="Demo: select text, click the icon, then Improve, Rephrase, Translate and Make shorter, and accept the result">
 </p>
+
+<p align="center"><sub>Select text → click ⌄ → Improve · Rephrase · Translate · More → Accept. (Demo rendered from the app's real interface.)</sub></p>
 
 ## What is Usami?
 
@@ -62,6 +61,13 @@ Requires macOS 14 (Sonoma) or newer · Apple Silicon and Intel. Prefer a manual 
 Select text in any editable field → click **⌄** next to it → choose **Improve**, **Rephrase**, **Translate** or **More** → **Accept** to replace your text (or **Copy**).
 
 The card stays open until you close it with **✕**. It belongs to the window where you selected the text: it moves with that window, appears only there (not in other apps or desktops), and you can **drag it by its header** to put it anywhere.
+
+<p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="docs/images/screenshot-dark.png">
+    <img src="docs/images/screenshot-light.png" width="640" alt="Usami suggestion card in light and dark appearance">
+  </picture>
+</p>
 
 Settings lets you switch provider and model, set the default translation language, and choose the icon style (blue outline or solid).
 

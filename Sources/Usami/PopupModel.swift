@@ -29,12 +29,15 @@ final class PopupModel: ObservableObject {
     }
 
     /// Puts the model in a fixed, finished state (used to render README screenshots).
-    func configureForPreview(selection: SelectionInfo, result: String) {
+    func configureForPreview(
+        selection: SelectionInfo, result: String,
+        action: RewriteAction = .improve, isLoading: Bool = false
+    ) {
         self.selection = selection
         self.result = result
-        self.action = .improve
+        self.action = action
         self.error = nil
-        self.isLoading = false
+        self.isLoading = isLoading
         self.phase = .card
     }
 
