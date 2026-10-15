@@ -14,7 +14,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuItemValidation {
         buildStatusItem()
 
         monitor.onSelection = { [weak self] info in self?.popup.show(for: info) }
-        monitor.onCleared = { [weak self] in self?.popup.hide() }
+        monitor.onCleared = { [weak self] in self?.popup.selectionCleared() }
 
         let trusted = AXText.isTrusted(prompt: true)
         DebugLog.write("launch: accessibility trusted = \(trusted)")

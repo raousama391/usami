@@ -19,9 +19,16 @@ final class PopupController {
     /// Whether the expanded card sits below the selection (top edge fixed) or above it (bottom edge fixed).
     private var cardBelow = true
 
+    // Sticky card: once opened, only the ✕ (or Accept) closes it, and it follows its source window.
+    private var cardOpen = false
+    private var sourcePID: pid_t = 0
+    private var sourceWindow: AXUIElement?
+    private var offsetFromWindow = CGSize.zero
+    private var trackTimer: Timer?
+
     init() {
         model.onLayoutChange = { [weak self] in self?.scheduleResize() }
-        model.onExpand = { [weak self] in self?.scheduleCardPlacement() }
+        model.onExpand = { [weak self] in self?.cardOpened() }
         model.onClose = { [weak self] in self?.hide() }
         model.onAccept = { [weak self] info, text in self?.accept(info, text) }
     }
@@ -29,6 +36,8 @@ final class PopupController {
     var isVisible: Bool { panel?.isVisible == true }
 
     func show(for selection: SelectionInfo) {
+        // An open card is pinned: new selections never replace or dismiss it.
+        guard !cardOpen else { return }
         guard Date() >= suppressUntil else { return }
         if isVisible, shownText == selection.text { return }
 
@@ -51,10 +60,21 @@ final class PopupController {
         panel.orderFrontRegardless()
     }
 
+    /// Called when the selection goes away or the user clicks elsewhere. Only the small trigger
+    /// reacts to that — an open card stays until its ✕ is pressed.
+    func selectionCleared() {
+        guard !cardOpen else { return }
+        hide()
+    }
+
+    /// Closes everything (✕, Accept, or the app being disabled).
     func hide() {
+        stopTracking()
+        cardOpen = false
         panel?.orderOut(nil)
         shownText = nil
         selection = nil
+        sourceWindow = nil
     }
 
     // MARK: Private
@@ -91,12 +111,24 @@ final class PopupController {
         self.hosting = hosting
     }
 
-    private func scheduleResize() {
-        DispatchQueue.main.async { [weak self] in self?.resize() }
+    // MARK: Card lifecycle
+
+    private func cardOpened() {
+        cardOpen = true
+        sourcePID = selection?.app?.processIdentifier ?? 0
+        if let element = selection?.element, sourcePID != 0 {
+            sourceWindow = AXText.window(containing: element, pid: sourcePID)
+        } else {
+            sourceWindow = nil
+        }
+        DispatchQueue.main.async { [weak self] in
+            self?.placeCard()
+            self?.startTracking()
+        }
     }
 
-    private func scheduleCardPlacement() {
-        DispatchQueue.main.async { [weak self] in self?.placeCard() }
+    private func scheduleResize() {
+        DispatchQueue.main.async { [weak self] in self?.resize() }
     }
 
     /// Opens the card just below the selection (or above it when there's no room), left-aligned with it.
@@ -118,6 +150,7 @@ final class PopupController {
         let x = selection.rect.minX - 8
         panel.setFrame(NSRect(x: x, y: y, width: size.width, height: size.height), display: true)
         clampToScreen()
+        captureWindowOffset()
     }
 
     private func resize() {
@@ -132,6 +165,7 @@ final class PopupController {
         }
         panel.setFrame(frame, display: true)
         clampToScreen()
+        captureWindowOffset()
     }
 
     private func clampToScreen() {
@@ -142,5 +176,61 @@ final class PopupController {
         frame.origin.x = min(max(frame.origin.x, visible.minX + 4), visible.maxX - frame.width - 4)
         frame.origin.y = min(max(frame.origin.y, visible.minY + 4), visible.maxY - frame.height - 4)
         if frame != panel.frame { panel.setFrame(frame, display: true) }
+    }
+
+    // MARK: Following the source window
+
+    /// Remembers where the card sits relative to its window's top-left so it can follow the window.
+    private func captureWindowOffset() {
+        guard cardOpen, let panel, let window = sourceWindow,
+              let point = AXText.windowPosition(window).point else { return }
+        let topLeft = AXText.cocoaPoint(fromAX: point)
+        offsetFromWindow = CGSize(
+            width: panel.frame.origin.x - topLeft.x,
+            height: panel.frame.origin.y - topLeft.y
+        )
+    }
+
+    private func startTracking() {
+        stopTracking()
+        let timer = Timer(timeInterval: 1.0 / 30.0, repeats: true) { [weak self] _ in
+            MainActor.assumeIsolated { self?.trackWindow() }
+        }
+        RunLoop.main.add(timer, forMode: .common)
+        trackTimer = timer
+    }
+
+    private func stopTracking() {
+        trackTimer?.invalidate()
+        trackTimer = nil
+    }
+
+    private func trackWindow() {
+        guard cardOpen, let panel else { return }
+
+        // The source window is gone — nothing left to stick to.
+        if let window = sourceWindow, AXText.windowPosition(window).invalid {
+            hide()
+            return
+        }
+
+        // Only show the card while its own window is the one in front.
+        let frontPID = NSWorkspace.shared.frontmostApplication?.processIdentifier
+        var sourceInFront = frontPID == sourcePID || frontPID == ProcessInfo.processInfo.processIdentifier
+        if sourceInFront, frontPID == sourcePID, let window = sourceWindow {
+            sourceInFront = AXText.isFocusedWindow(window, pid: sourcePID) && !AXText.isMinimized(window)
+        }
+        guard sourceInFront else {
+            if panel.isVisible { panel.orderOut(nil) }
+            return
+        }
+        if !panel.isVisible { panel.orderFrontRegardless() }
+
+        guard let window = sourceWindow, let point = AXText.windowPosition(window).point else { return }
+        let topLeft = AXText.cocoaPoint(fromAX: point)
+        let desired = NSPoint(x: topLeft.x + offsetFromWindow.width, y: topLeft.y + offsetFromWindow.height)
+        if abs(desired.x - panel.frame.origin.x) > 0.5 || abs(desired.y - panel.frame.origin.y) > 0.5 {
+            panel.setFrameOrigin(desired)
+        }
     }
 }

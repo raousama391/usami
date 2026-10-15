@@ -14,6 +14,7 @@ select text ──► detect selection ──► show ⌄ trigger ──► clic
 1. **Detect.** A global mouse-up monitor plus an `AXObserver` on the frontmost app notice that the selection changed. Usami reads the focused element's `AXSelectedText`, `AXSelectedTextRange` and the on-screen bounds of the range.
 2. **Show.** A small floating, non-activating `NSPanel` places a chevron icon to the left of the first selected line. Because the panel never becomes key, the app you're typing in keeps focus and the selection stays intact.
 3. **Rewrite.** Clicking the icon expands the same panel into a card below the selection and runs **Improve**. Tabs and menus run other actions. Each action is a system prompt plus your selected text.
+   Once the card is open it is **pinned**: selection changes and clicks elsewhere don't dismiss it, only the ✕ does. It remembers its offset from the source window's top-left (read through `AXPosition`) and follows the window ~30 times a second. It hides while another window or app is in front, reappears when you return, and closes if the window is destroyed.
 4. **Accept.** The result is written back via `AXSelectedText`. If the app ignores Accessibility writes, Usami temporarily puts the text on the clipboard, sends ⌘V, then restores your previous clipboard.
 
 ## Permissions
