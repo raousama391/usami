@@ -1,0 +1,40 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Build (macOS)
+    runs-on: macos-15
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - name: Shell syntax check
+        run: |
+          bash -n install.sh
+          bash -n scripts/build_dmg.sh
+
+      - name: Build (release, universal)
+        run: swift build -c release --arch arm64 --arch x86_64
+
+      - name: Package app and DMG
+        run: ./scripts/build_dmg.sh
+
+      - name: Verify bundle
+        run: |
+          codesign --verify --deep --strict build/Usami.app
+          codesign -d -r- build/Usami.app 2>&1 | grep 'designated => identifier "io.prodify.usami"'
+          hdiutil verify build/Usami.dmg

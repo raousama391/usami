@@ -1,0 +1,46 @@
+name: Release
+
+# Attaches Usami.dmg (+ checksum) to a GitHub release so install.sh can download it.
+#   Cut a release:  git tag v0.1.0 && git push origin v0.1.0, then publish a release for that tag
+#                   (or: gh release create v0.1.0 --generate-notes)
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Existing release tag to build and attach the DMG to (e.g. v0.1.0)"
+        required: true
+        type: string
+
+permissions:
+  contents: write
+
+concurrency:
+  group: release-${{ github.event.release.tag_name || inputs.tag }}
+  cancel-in-progress: false
+
+jobs:
+  build:
+    name: Build and upload DMG
+    runs-on: macos-15
+    timeout-minutes: 30
+    env:
+      TAG: ${{ github.event.release.tag_name || inputs.tag }}
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - name: Check out the release tag
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.release.tag_name || inputs.tag }}
+          persist-credentials: false
+
+      - name: Build universal app and DMG
+        run: |
+          VERSION="${TAG#v}" ./scripts/build_dmg.sh
+          shasum -a 256 build/Usami.dmg | awk '{print $1}' > build/Usami.dmg.sha256
+          cat build/Usami.dmg.sha256
+
+      - name: Upload to the release
+        run: gh release upload "$TAG" build/Usami.dmg build/Usami.dmg.sha256 --clobber --repo "$GITHUB_REPOSITORY"
