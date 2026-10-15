@@ -27,6 +27,18 @@ jobs:
           bash -n install.sh
           bash -n scripts/build_dmg.sh
 
+      - name: Installer locale smoke test
+        run: |
+          # A $VAR directly followed by a non-ASCII character breaks under UTF-8 locales in macOS bash 3.2.
+          if perl -CSD -ne 'print "$ARGV:$.: $_" if /\$[A-Za-z_]\w*[^\x00-\x7F]/' install.sh scripts/build_dmg.sh | grep .; then
+            echo "Brace variables that touch non-ASCII characters: \${VAR}…"; exit 1
+          fi
+          for loc in en_US.UTF-8 C; do
+            out="$(LC_ALL=$loc USAMI_DMG_URL=file:///nonexistent.dmg USAMI_DEST="$RUNNER_TEMP/d" USAMI_NO_LAUNCH=1 /bin/bash install.sh 2>&1 || true)"
+            echo "$out"
+            if echo "$out" | grep -q "unbound variable"; then echo "installer failed under $loc"; exit 1; fi
+          done
+
       - name: Build (release, universal)
         run: swift build -c release --arch arm64 --arch x86_64
 
