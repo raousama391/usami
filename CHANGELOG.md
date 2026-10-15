@@ -6,8 +6,13 @@ All notable changes to this project are documented here. The format follows
 
 ## [Unreleased]
 
+## [0.1.4] - 2026-10-16
+
 ### Added
 - Animated demo GIF in the README, rendered from the app's real views (`Usami --render-demo docs/images`).
+
+### Changed
+- CI and release workflows now use `actions/checkout@v7`.
 
 ## [0.1.3] - 2026-10-16
 
@@ -54,7 +59,8 @@ All notable changes to this project are documented here. The format follows
 - In-place replacement of the selection with a clipboard-paste fallback.
 - Universal (Apple Silicon + Intel) DMG packaging script.
 
-[Unreleased]: https://github.com/raousama391/usami/compare/v0.1.3...HEAD
+[Unreleased]: https://github.com/raousama391/usami/compare/v0.1.4...HEAD
+[0.1.4]: https://github.com/raousama391/usami/compare/v0.1.3...v0.1.4
 [0.1.3]: https://github.com/raousama391/usami/compare/v0.1.2...v0.1.3
 [0.1.2]: https://github.com/raousama391/usami/compare/v0.1.1...v0.1.2
 [0.1.1]: https://github.com/raousama391/usami/releases/tag/v0.1.1
