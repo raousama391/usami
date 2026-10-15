@@ -17,6 +17,10 @@ select text ──► detect selection ──► show ⌄ trigger ──► clic
    Once the card is open it is **pinned**: selection changes and clicks elsewhere don't dismiss it, only the ✕ does. It remembers its offset from the source window's top-left (read through `AXPosition`) and follows the window ~30 times a second. It hides while another window or app is in front, reappears when you return, and closes if the window is destroyed.
 4. **Accept.** The result is written back via `AXSelectedText`. If the app ignores Accessibility writes, Usami temporarily puts the text on the clipboard, sends ⌘V, then restores your previous clipboard.
 
+## Updates
+
+`Updater.swift` asks the GitHub API for the latest release every six hours (unless you chose **Never check**). If it's newer, the menu bar and Settings offer **Update to vX.Y.Z**, or it installs on its own when set to **Install automatically** and no card is open. Only `Usami.dmg` assets from this repository's releases are downloaded, over HTTPS. The app verifies the published SHA-256, checks the staged app's signature, bundle identifier and version, then quits; a small helper script swaps the app in place and relaunches it. Because releases carry the same designated requirement, your Accessibility grant carries over. Copies outside `/Applications` or `~/Applications` can't self-update and link to the release instead.
+
 ## Permissions
 
 Reading other apps' text requires the macOS **Accessibility** permission. macOS stores that grant as a *code requirement* describing which app may use it.

@@ -39,6 +39,7 @@ It is built in Swift and SwiftUI, has **no server and no analytics**, and uses t
 - **Bring your own AI** — sign in with **Claude** (Pro/Max) or **ChatGPT** (Plus/Pro) through your browser.
 - **Minimal and native** — light/dark theme aware, a single small icon, no windows to manage.
 - **Private by design** — only the text you choose to rewrite is sent, only to the provider you picked. Tokens live in your macOS Keychain.
+- **Stays up to date** — optional in-app updates from GitHub Releases: get notified, install automatically, or never check.
 - **Open source** — MIT-licensed, about 2,000 lines of Swift, no third-party dependencies.
 
 ## Install
@@ -60,7 +61,7 @@ Requires macOS 14 (Sonoma) or newer · Apple Silicon and Intel. Prefer a manual 
 
 Select text in any editable field → click **⌄** next to it → choose **Improve**, **Rephrase**, **Translate** or **More** → **Accept** to replace your text (or **Copy**).
 
-The card stays open until you close it with **✕**, and it sticks to the window where you selected the text — it moves with that window and hides while another window or app is in front.
+The card stays open until you close it with **✕**. It belongs to the window where you selected the text: it moves with that window, appears only there (not in other apps or desktops), and you can **drag it by its header** to put it anywhere.
 
 Settings lets you switch provider and model, set the default translation language, and choose the icon style (blue outline or solid).
 

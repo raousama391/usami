@@ -13,6 +13,9 @@ Usami has **no server, no account and no analytics**. This page lists exactly wh
 | --- | --- | --- |
 | You click an action (Improve, Rephrase, …) | The selected text and the action's instruction | The provider you selected: Anthropic (via the Claude Code CLI) or OpenAI (`chatgpt.com`) |
 | You sign in | Standard OAuth requests | `claude.ai` / `console.anthropic.com`, or `auth.openai.com` |
+| Every few hours, if updates are enabled | A request for this project's latest release (your IP and the app version are visible to GitHub) | `api.github.com`; the update itself comes from `github.com/raousama391/usami` releases |
+
+Set **Settings → Updates → Never check** to turn off all update traffic.
 
 Nothing is sent when you merely select text. Nothing is sent to the project maintainers or any third party. What the AI providers do with your text is governed by *their* terms and privacy policies.
 

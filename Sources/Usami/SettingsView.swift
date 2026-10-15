@@ -11,7 +11,7 @@ final class SettingsWindowController {
         if window == nil {
             let host = NSHostingView(rootView: SettingsView())
             let window = NSWindow(
-                contentRect: NSRect(x: 0, y: 0, width: 520, height: 600),
+                contentRect: NSRect(x: 0, y: 0, width: 520, height: 720),
                 styleMask: [.titled, .closable, .miniaturizable],
                 backing: .buffered,
                 defer: false
@@ -31,6 +31,7 @@ struct SettingsView: View {
     @ObservedObject private var settings = Settings.shared
     @ObservedObject private var claude = ClaudeAuth.shared
     @ObservedObject private var codex = CodexAuth.shared
+    @ObservedObject private var updater = Updater.shared
 
     @State private var trusted = AXText.isTrusted()
     @State private var launchAtLogin = SMAppService.mainApp.status == .enabled
@@ -76,10 +77,60 @@ struct SettingsView: View {
                     ForEach(Settings.languages, id: \.self) { Text($0) }
                 }
             }
+
+            Section("Updates") {
+                HStack {
+                    Text("Version \(updater.currentVersion)")
+                    Spacer()
+                    updateStatus
+                }
+                Picker("Updates", selection: $settings.updateMode) {
+                    ForEach(UpdateMode.allCases) { Text($0.title).tag($0) }
+                }
+                HStack {
+                    Button("Check now") { Task { await updater.check(userInitiated: true) } }
+                        .disabled(updater.state == .checking || updater.state == .downloading || updater.state == .installing)
+                    if case .available(let version) = updater.state {
+                        Button(updater.canSelfInstall ? "Update to v\(version)" : "View v\(version)") {
+                            Task { await updater.install() }
+                        }
+                        .buttonStyle(.borderedProminent)
+                    }
+                }
+                if !updater.canSelfInstall {
+                    Text("This copy isn't in your Applications folder, so it can't update itself. Install with the one-line installer to enable updates.")
+                        .font(.callout).foregroundStyle(.secondary)
+                }
+            }
         }
         .formStyle(.grouped)
-        .frame(width: 520, height: 600)
+        .frame(width: 520, height: 720)
         .onReceive(timer) { _ in trusted = AXText.isTrusted() }
+    }
+
+    // MARK: Updates
+
+    @ViewBuilder
+    private var updateStatus: some View {
+        switch updater.state {
+        case .idle:
+            EmptyView()
+        case .checking:
+            HStack(spacing: 6) { ProgressView().controlSize(.small); Text("Checking…") }
+                .foregroundStyle(.secondary)
+        case .upToDate:
+            Label("Up to date", systemImage: "checkmark.circle.fill").foregroundStyle(.green)
+        case .available(let version):
+            Label("v\(version) available", systemImage: "arrow.up.circle.fill").foregroundStyle(.blue)
+        case .downloading:
+            HStack(spacing: 6) { ProgressView().controlSize(.small); Text("Downloading…") }
+                .foregroundStyle(.secondary)
+        case .installing:
+            HStack(spacing: 6) { ProgressView().controlSize(.small); Text("Installing, restarting…") }
+                .foregroundStyle(.secondary)
+        case .failed(let message):
+            Text(message).font(.callout).foregroundStyle(.red).lineLimit(2)
+        }
     }
 
     // MARK: Claude

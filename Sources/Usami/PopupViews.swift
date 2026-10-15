@@ -69,6 +69,40 @@ private struct TriggerButton: View {
 
 // MARK: - Card
 
+/// Transparent view that turns a mouse-down into a native window drag. It works on the
+/// non-activating panel without making it key, so the app underneath keeps focus.
+private struct WindowDragHandle: NSViewRepresentable {
+    var onBegin: () -> Void
+    var onEnd: () -> Void
+
+    func makeNSView(context: Context) -> DragView {
+        let view = DragView()
+        view.onBegin = onBegin
+        view.onEnd = onEnd
+        return view
+    }
+
+    func updateNSView(_ view: DragView, context: Context) {
+        view.onBegin = onBegin
+        view.onEnd = onEnd
+    }
+
+    final class DragView: NSView {
+        var onBegin: (() -> Void)?
+        var onEnd: (() -> Void)?
+
+        override var mouseDownCanMoveWindow: Bool { false }
+        override func acceptsFirstMouse(for event: NSEvent?) -> Bool { true }
+        override func resetCursorRects() { addCursorRect(bounds, cursor: .openHand) }
+
+        override func mouseDown(with event: NSEvent) {
+            onBegin?()
+            window?.performDrag(with: event)   // returns when the mouse is released
+            onEnd?()
+        }
+    }
+}
+
 private struct SolidButtonStyle: ButtonStyle {
     func makeBody(configuration: Configuration) -> some View {
         Label(configuration: configuration)
@@ -164,6 +198,13 @@ private struct SuggestionCard: View {
         .padding(.trailing, 8)
         .padding(.top, 8)
         .padding(.bottom, 6)
+        .contentShape(Rectangle())
+        // Dragging the header moves the whole card anywhere on screen.
+        .background {
+            if !staticPreview {
+                WindowDragHandle(onBegin: { model.onDragBegan?() }, onEnd: { model.onDragEnded?() })
+            }
+        }
     }
 
     @ViewBuilder
