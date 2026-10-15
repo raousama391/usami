@@ -88,6 +88,56 @@ enum AXText {
         return NSRect(x: rect.minX, y: primaryHeight - rect.maxY, width: rect.width, height: rect.height)
     }
 
+    // MARK: Windows
+
+    /// The window that contains `element`, falling back to the app's focused/main window.
+    static func window(containing element: AXUIElement, pid: pid_t) -> AXUIElement? {
+        var value: CFTypeRef?
+        if AXUIElementCopyAttributeValue(element, kAXWindowAttribute as CFString, &value) == .success, let value {
+            return (value as! AXUIElement)
+        }
+        let app = AXUIElementCreateApplication(pid)
+        for attribute in [kAXFocusedWindowAttribute, kAXMainWindowAttribute] {
+            if AXUIElementCopyAttributeValue(app, attribute as CFString, &value) == .success, let value {
+                return (value as! AXUIElement)
+            }
+        }
+        return nil
+    }
+
+    /// Top-left of a window in AX coordinates. `invalid` is true once the window no longer exists.
+    static func windowPosition(_ window: AXUIElement) -> (point: CGPoint?, invalid: Bool) {
+        var value: CFTypeRef?
+        let error = AXUIElementCopyAttributeValue(window, kAXPositionAttribute as CFString, &value)
+        if error == .invalidUIElement { return (nil, true) }
+        guard error == .success, let value, CFGetTypeID(value) == AXValueGetTypeID() else { return (nil, false) }
+        var point = CGPoint.zero
+        guard AXValueGetValue(value as! AXValue, .cgPoint, &point) else { return (nil, false) }
+        return (point, false)
+    }
+
+    static func isMinimized(_ window: AXUIElement) -> Bool {
+        var value: CFTypeRef?
+        guard AXUIElementCopyAttributeValue(window, kAXMinimizedAttribute as CFString, &value) == .success,
+              let value else { return false }
+        return (value as? Bool) ?? false
+    }
+
+    /// True when `window` is the focused window of the app with this pid.
+    static func isFocusedWindow(_ window: AXUIElement, pid: pid_t) -> Bool {
+        var value: CFTypeRef?
+        let app = AXUIElementCreateApplication(pid)
+        guard AXUIElementCopyAttributeValue(app, kAXFocusedWindowAttribute as CFString, &value) == .success,
+              let value else { return true }   // can't tell — don't hide
+        return CFEqual(value, window)
+    }
+
+    /// Converts an AX point (origin top-left of the primary screen, y down) to Cocoa coordinates.
+    static func cocoaPoint(fromAX point: CGPoint) -> NSPoint {
+        let primaryHeight = NSScreen.screens.first?.frame.height ?? 0
+        return NSPoint(x: point.x, y: primaryHeight - point.y)
+    }
+
     static func isSecure(_ element: AXUIElement) -> Bool {
         string(element, kAXSubroleAttribute as String) == "AXSecureTextField"
     }

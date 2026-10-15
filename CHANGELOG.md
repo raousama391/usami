@@ -6,6 +6,12 @@ All notable changes to this project are documented here. The format follows
 
 ## [Unreleased]
 
+## [0.1.2] - 2026-10-16
+
+### Changed
+- The suggestion card now stays open until you close it with the **✕** button (or accept the result). Clicking elsewhere, changing the selection or typing no longer dismisses it.
+- The card is attached to the window where you selected the text: it moves with that window, hides while another window or app is in front, and returns when you come back. It closes if that window is closed.
+
 ## [0.1.1] - 2026-10-16
 
 ### Added
@@ -31,6 +37,7 @@ All notable changes to this project are documented here. The format follows
 - In-place replacement of the selection with a clipboard-paste fallback.
 - Universal (Apple Silicon + Intel) DMG packaging script.
 
-[Unreleased]: https://github.com/raousama391/usami/compare/v0.1.1...HEAD
+[Unreleased]: https://github.com/raousama391/usami/compare/v0.1.2...HEAD
+[0.1.2]: https://github.com/raousama391/usami/compare/v0.1.1...v0.1.2
 [0.1.1]: https://github.com/raousama391/usami/releases/tag/v0.1.1
 [0.1.0]: https://github.com/raousama391/usami/releases/tag/v0.1.0

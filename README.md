@@ -60,6 +60,8 @@ Requires macOS 14 (Sonoma) or newer · Apple Silicon and Intel. Prefer a manual 
 
 Select text in any editable field → click **⌄** next to it → choose **Improve**, **Rephrase**, **Translate** or **More** → **Accept** to replace your text (or **Copy**).
 
+The card stays open until you close it with **✕**, and it sticks to the window where you selected the text — it moves with that window and hides while another window or app is in front.
+
 Settings lets you switch provider and model, set the default translation language, and choose the icon style (blue outline or solid).
 
 ## Usami vs Grammarly
