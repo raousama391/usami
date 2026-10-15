@@ -1,0 +1,52 @@
+name: Bug report
+description: Something isn't working as expected
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for reporting! Please check the [troubleshooting guide](https://github.com/raousama391/usami/blob/main/docs/troubleshooting.md) first.
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened?
+      description: What did you do, what did you expect, and what happened instead?
+    validations:
+      required: true
+  - type: input
+    id: app
+    attributes:
+      label: App where it happens
+      description: e.g. Slack, Notes, Chrome (and the page/editor if relevant)
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: Usami version
+      description: Shown in Finder → Get Info on Usami.app, or the release you installed
+    validations:
+      required: true
+  - type: input
+    id: macos
+    attributes:
+      label: macOS version and chip
+      placeholder: "macOS 15.1, Apple Silicon"
+    validations:
+      required: true
+  - type: dropdown
+    id: provider
+    attributes:
+      label: AI provider
+      options:
+        - Claude
+        - ChatGPT (Codex)
+        - Not applicable
+    validations:
+      required: true
+  - type: textarea
+    id: log
+    attributes:
+      label: Log output
+      description: Last lines of `~/Library/Logs/Usami.log` (`tail -n 30 ~/Library/Logs/Usami.log`). It contains metadata only, never your text.
+      render: shell

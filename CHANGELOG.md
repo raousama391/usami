@@ -1,0 +1,38 @@
+# Changelog
+
+All notable changes to this project are documented here. The format follows
+[Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to
+[Semantic Versioning](https://semver.org/).
+
+## [Unreleased]
+
+### Added
+- One-line installer (`install.sh`) with install, uninstall and build-from-source modes.
+- GitHub Actions release workflow that builds and attaches the universal DMG and a SHA-256 checksum.
+- README screenshots rendered from the real UI (`Usami --render-previews`).
+- Project documentation: how it works, privacy, troubleshooting, FAQ, contributing and security policy.
+
+## [0.1.1] - 2026-10-16
+
+### Added
+- Chevron trigger icon placed to the left of the selection, with **blue outline** and **solid** styles.
+- Minimal card that follows the system light/dark theme and opens below the selection.
+- App icon.
+- **Fix Accessibility access…** action in the menu bar and Settings to clear a stale permission entry.
+
+### Changed
+- Builds embed a stable designated requirement so the Accessibility grant survives rebuilds and updates.
+- Edit menu installed so ⌘V/⌘C/⌘A work in Settings fields.
+
+## [0.1.0] - 2026-10-16
+
+### Added
+- Menu-bar app that detects text selection system-wide through the Accessibility API.
+- Improve, Rephrase, Translate and More (grammar, shorter, longer, formal, casual, summarize) actions.
+- Claude sign-in (browser PKCE flow, runs through the Claude Code CLI) and ChatGPT sign-in (Codex device-code flow).
+- In-place replacement of the selection with a clipboard-paste fallback.
+- Universal (Apple Silicon + Intel) DMG packaging script.
+
+[Unreleased]: https://github.com/raousama391/usami/compare/v0.1.1...HEAD
+[0.1.1]: https://github.com/raousama391/usami/releases/tag/v0.1.1
+[0.1.0]: https://github.com/raousama391/usami/releases/tag/v0.1.0
