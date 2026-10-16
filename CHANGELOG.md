@@ -6,6 +6,11 @@ All notable changes to this project are documented here. The format follows
 
 ## [Unreleased]
 
+## [0.2.1] - 2026-10-17
+
+### Fixed
+- The release build failing on GitHub's macOS runner (an ambiguous `cos` call in the provider icon drawing), which left v0.2.0 without a downloadable DMG. 0.2.1 ships everything listed under 0.2.0.
+
 ## [0.2.0] - 2026-10-17
 
 ### Added
@@ -78,7 +83,8 @@ All notable changes to this project are documented here. The format follows
 - In-place replacement of the selection with a clipboard-paste fallback.
 - Universal (Apple Silicon + Intel) DMG packaging script.
 
-[Unreleased]: https://github.com/raousama391/usami/compare/v0.2.0...HEAD
+[Unreleased]: https://github.com/raousama391/usami/compare/v0.2.1...HEAD
+[0.2.1]: https://github.com/raousama391/usami/compare/v0.2.0...v0.2.1
 [0.2.0]: https://github.com/raousama391/usami/compare/v0.1.4...v0.2.0
 [0.1.4]: https://github.com/raousama391/usami/compare/v0.1.3...v0.1.4
 [0.1.3]: https://github.com/raousama391/usami/compare/v0.1.2...v0.1.3
