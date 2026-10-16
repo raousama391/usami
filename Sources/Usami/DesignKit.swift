@@ -139,11 +139,14 @@ private struct ClaudeBurst: Shape {
         let r = min(rect.width, rect.height) / 2
         var p = Path()
         for i in 0..<8 {
-            let angle = Double(i) * .pi / 4
+            // Explicit Double math converted to CGFloat: older toolchains find a bare cos() ambiguous here.
+            let angle = Double(i) * Double.pi / 4
+            let dx = CGFloat(Foundation.cos(angle))
+            let dy = CGFloat(Foundation.sin(angle))
             let inner = r * 0.3
             let outer = r * (i.isMultiple(of: 2) ? 0.95 : 0.8)
-            p.move(to: CGPoint(x: c.x + cos(angle) * inner, y: c.y + sin(angle) * inner))
-            p.addLine(to: CGPoint(x: c.x + cos(angle) * outer, y: c.y + sin(angle) * outer))
+            p.move(to: CGPoint(x: c.x + dx * inner, y: c.y + dy * inner))
+            p.addLine(to: CGPoint(x: c.x + dx * outer, y: c.y + dy * outer))
         }
         return p
     }
