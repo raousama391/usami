@@ -1,11 +1,13 @@
 import AppKit
 import Combine
+import SwiftUI
 
 @MainActor
-final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuItemValidation {
+final class AppDelegate: NSObject, NSApplicationDelegate {
     private var statusItem: NSStatusItem?
+    private let popover = NSPopover()
     private let monitor = SelectionMonitor()
-    private let popup = PopupController()
+    private let popup = PopupManager()
     private var trustTimer: Timer?
     private var cancellables = Set<AnyCancellable>()
 
@@ -19,12 +21,18 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuItemValidation {
         monitor.onSelection = { [weak self] info in self?.popup.show(for: info) }
         monitor.onCleared = { [weak self] in self?.popup.selectionCleared() }
 
-        let trusted = AXText.isTrusted(prompt: true)
+        let trusted = AXText.isTrusted()
         DebugLog.write("launch: accessibility trusted = \(trusted)")
+        if !Settings.shared.onboarded {
+            // First run: the setup guide walks through provider, sign-in and Accessibility.
+            OnboardingWindowController.shared.show()
+        } else if !trusted {
+            _ = AXText.isTrusted(prompt: true)
+            SettingsWindowController.shared.show()
+        }
         if trusted {
             monitor.start()
         } else {
-            SettingsWindowController.shared.show()
             trustTimer = Timer.scheduledTimer(withTimeInterval: 1.5, repeats: true) { [weak self] timer in
                 MainActor.assumeIsolated {
                     guard let self, AXText.isTrusted() else { return }
@@ -38,7 +46,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuItemValidation {
         Settings.shared.$enabled
             .receive(on: DispatchQueue.main)
             .sink { [weak self] enabled in
-                if !enabled { self?.popup.hide() }
+                if !enabled { self?.popup.hideAll() }
                 self?.statusItem?.button?.appearsDisabled = !enabled
             }
             .store(in: &cancellables)
@@ -78,78 +86,25 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuItemValidation {
     private func buildStatusItem() {
         let item = NSStatusBar.system.statusItem(withLength: NSStatusItem.squareLength)
         if let button = item.button {
-            button.image = NSImage(systemSymbolName: "sparkles", accessibilityDescription: "Usami")
+            button.image = makeStatusBarImage()
+            button.target = self
+            button.action = #selector(togglePopover(_:))
         }
-
-        let menu = NSMenu()
-        let access = NSMenuItem(title: "Accessibility access", action: #selector(openAccessibilitySettings), keyEquivalent: "")
-        access.target = self
-        menu.addItem(access)
-        let toggle = NSMenuItem(title: "Enabled", action: #selector(toggleEnabled), keyEquivalent: "")
-        toggle.target = self
-        menu.addItem(toggle)
-        menu.addItem(.separator())
-
-        let settings = NSMenuItem(title: "Settings…", action: #selector(openSettings), keyEquivalent: ",")
-        settings.target = self
-        menu.addItem(settings)
-
-        let update = NSMenuItem(title: "Check for Updates…", action: #selector(updateAction), keyEquivalent: "")
-        update.target = self
-        menu.addItem(update)
-        menu.addItem(.separator())
-
-        let quit = NSMenuItem(title: "Quit Usami", action: #selector(quit), keyEquivalent: "q")
-        quit.target = self
-        menu.addItem(quit)
-
-        item.menu = menu
+        popover.behavior = .transient
+        popover.animates = true
+        popover.contentViewController = NSHostingController(
+            rootView: MenuBarView(close: { [weak self] in self?.popover.performClose(nil) })
+        )
         statusItem = item
     }
 
-    func validateMenuItem(_ menuItem: NSMenuItem) -> Bool {
-        if menuItem.action == #selector(toggleEnabled) {
-            menuItem.state = Settings.shared.enabled ? .on : .off
-        }
-        if menuItem.action == #selector(updateAction) {
-            switch Updater.shared.state {
-            case .available(let version):
-                menuItem.title = "⬆︎ Update to v\(version)…"
-                return true
-            case .checking, .downloading, .installing:
-                menuItem.title = "Updating…"
-                return false
-            default:
-                menuItem.title = "Check for Updates…"
-                return true
-            }
-        }
-        if menuItem.action == #selector(openAccessibilitySettings) {
-            let trusted = AXText.isTrusted()
-            menuItem.title = trusted ? "Accessibility: granted ✓" : "⚠️ Fix Accessibility access…"
-            menuItem.isEnabled = !trusted
-            return !trusted
-        }
-        return true
-    }
-
-    @objc private func updateAction() {
-        let updater = Updater.shared
-        if case .available = updater.state {
-            Task { await updater.install() }
+    @objc private func togglePopover(_ sender: NSStatusBarButton) {
+        if popover.isShown {
+            popover.performClose(nil)
         } else {
-            Task {
-                await updater.check(userInitiated: true)
-                SettingsWindowController.shared.show()
-            }
+            NSApp.activate(ignoringOtherApps: true)
+            popover.show(relativeTo: sender.bounds, of: sender, preferredEdge: .minY)
         }
     }
 
-    @objc private func openAccessibilitySettings() {
-        AXText.resetAndRequestAccess()
-    }
-
-    @objc private func toggleEnabled() { Settings.shared.enabled.toggle() }
-    @objc private func openSettings() { SettingsWindowController.shared.show() }
-    @objc private func quit() { NSApp.terminate(nil) }
 }

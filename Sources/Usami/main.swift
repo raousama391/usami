@@ -7,6 +7,13 @@ if let flag = CommandLine.arguments.firstIndex(of: "--render-previews") {
     exit(0)
 }
 
+// `Usami --render-ui <dir>` snapshots the setup guide, home pages and menu bar popover in both themes.
+if let flag = CommandLine.arguments.firstIndex(of: "--render-ui") {
+    let directory = CommandLine.arguments.count > flag + 1 ? CommandLine.arguments[flag + 1] : "."
+    MainActor.assumeIsolated { renderUISnapshots(to: directory) }
+    exit(0)
+}
+
 // `Usami --render-demo <dir> [--debug-frames]` renders the README demo GIF and exits.
 if let flag = CommandLine.arguments.firstIndex(of: "--render-demo") {
     let directory = CommandLine.arguments.count > flag + 1 ? CommandLine.arguments[flag + 1] : "."

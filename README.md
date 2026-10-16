@@ -22,11 +22,11 @@
   <img src="docs/images/demo.gif" width="720" alt="Demo: select text, click the icon, then Improve, Rephrase, Translate and Make shorter, and accept the result">
 </p>
 
-<p align="center"><sub>Select text → click ⌄ → Improve · Rephrase · Translate · More → Accept. (Demo rendered from the app's real interface.)</sub></p>
+<p align="center"><sub>Select text → click ✨ → Improve · Rephrase · Translate · More · Custom → Accept. (Demo rendered from the app's real interface.)</sub></p>
 
 ## What is Usami?
 
-Usami is a small native macOS menu-bar app: a **system-wide AI writing assistant** that works like a grammar checker and rewriting tool in *every* app — Mail, Slack, Notes, browsers, editors, chat apps. Select some text, click the **⌄** icon that appears beside it, and pick **Improve**, **Rephrase**, **Translate** or one of the **More** options. Accept the result and it replaces your text in place.
+Usami is a small native macOS menu-bar app: a **system-wide AI writing assistant** that works like a grammar checker and rewriting tool in *every* app — Mail, Slack, Notes, browsers, editors, chat apps. Select some text, click the **✨** icon that appears beside it, and pick **Improve**, **Rephrase**, **Translate**, one of the **More** options, or describe your own change under **Custom**. Accept the result and it replaces your text in place.
 
 It is built in Swift and SwiftUI, has **no server and no analytics**, and uses the Claude or ChatGPT subscription you already pay for instead of another monthly plan.
 
@@ -35,9 +35,11 @@ It is built in Swift and SwiftUI, has **no server and no analytics**, and uses t
 - **Works everywhere** — any app that exposes text through macOS Accessibility, not just browsers.
 - **Improve** grammar, spelling, clarity and flow while keeping your voice.
 - **Rephrase**, **translate** into 14 languages, or make text **shorter, longer, more formal, more casual**, or **summarize** it.
+- **Custom edits** — type the change you want ("make it warmer", "turn it into bullet points"). Usami only edits the selected text and returns one final version; unrelated questions are refused.
+- **Several cards at once** — keep a card open in Slack while you work on another in WhatsApp.
 - **Bring your own AI** — sign in with **Claude** (Pro/Max) or **ChatGPT** (Plus/Pro) through your browser.
-- **Minimal and native** — light/dark theme aware, a single small icon, no windows to manage.
-- **Private by design** — only the text you choose to rewrite is sent, only to the provider you picked. Tokens live in your macOS Keychain.
+- **Minimal and native** — light/dark theme aware, a frosted glass card, a guided first-run setup and a compact menu bar popover.
+- **Private by design** — only the text you choose to rewrite is sent, only to the provider you picked. Tokens stay on your Mac in a private, owner-only file.
 - **Stays up to date** — optional in-app updates from GitHub Releases: get notified, install automatically, or never check.
 - **Open source** — MIT-licensed, about 2,000 lines of Swift, no third-party dependencies.
 
@@ -49,16 +51,21 @@ curl -fsSL https://raw.githubusercontent.com/raousama391/usami/main/install.sh |
 
 Requires macOS 14 (Sonoma) or newer · Apple Silicon and Intel. Prefer a manual download? Get `Usami.dmg` from the [latest release](https://github.com/raousama391/usami/releases/latest).
 
-## Set up (about 30 seconds)
+## Set up (about a minute)
 
-1. **Allow access.** Click the ✨ icon in the menu bar → **Fix Accessibility access…** and switch Usami on. macOS needs this so Usami can read the text you select.
-2. **Sign in.** Open **Settings…**, choose **Claude** or **ChatGPT**, and sign in through your browser.
+On first launch a short setup guide walks you through it:
+
+1. **Choose your AI.** Pick **Claude** or **ChatGPT** and a model.
+2. **Sign in** through your browser.
+3. **Allow access.** Switch Usami on under System Settings → Privacy & Security → Accessibility. macOS needs this so Usami can read the text you select. Updates keep this permission and never ask for your password again.
+
+You can reopen the guide from **Settings… → Home → Setup guide**.
 
 > Claude requests run through the [Claude Code](https://docs.claude.com/en/docs/claude-code) CLI, so it needs to be installed. ChatGPT needs nothing extra.
 
 ## Use
 
-Select text in any editable field → click **⌄** next to it → choose **Improve**, **Rephrase**, **Translate** or **More** → **Accept** to replace your text (or **Copy**).
+Select text in any editable field → click **✨** next to it → choose **Improve**, **Rephrase**, **Translate**, **More** or **Custom** → **Accept** to replace your text (or **Copy**).
 
 The card stays open until you close it with **✕**. It belongs to the window where you selected the text: it moves with that window, appears only there (not in other apps or desktops), and you can **drag it by its header** to put it anywhere.
 
@@ -69,7 +76,7 @@ The card stays open until you close it with **✕**. It belongs to the window wh
   </picture>
 </p>
 
-Settings lets you switch provider and model, set the default translation language, and choose the icon style (blue outline or solid).
+The menu bar ✨ opens a popover to turn Usami on or off and switch between Claude and Codex. **Settings…** has pages for your AI model and account, the default translation language, updates, and the trigger icon style (app icon or light).
 
 ## Usami vs Grammarly
 

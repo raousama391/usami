@@ -26,7 +26,7 @@ func render(size: Int) -> Data {
     ctx.setShadow(offset: CGSize(width: 0, height: -s * 0.014), blur: s * 0.035,
                   color: CGColor(red: 0, green: 0, blue: 0, alpha: 0.38))
     ctx.addPath(bodyPath)
-    ctx.setFillColor(CGColor(red: 0.3, green: 0.3, blue: 0.9, alpha: 1))
+    ctx.setFillColor(CGColor(red: 0.15, green: 0.4, blue: 0.95, alpha: 1))
     ctx.fillPath()
     ctx.restoreGState()
 
@@ -35,9 +35,9 @@ func render(size: Int) -> Data {
     ctx.addPath(bodyPath)
     ctx.clip()
     let colors = [
-        CGColor(red: 0.27, green: 0.40, blue: 1.00, alpha: 1),
-        CGColor(red: 0.50, green: 0.30, blue: 0.97, alpha: 1),
-        CGColor(red: 0.80, green: 0.32, blue: 0.88, alpha: 1),
+        CGColor(red: 0.35, green: 0.72, blue: 1.00, alpha: 1),
+        CGColor(red: 0.15, green: 0.47, blue: 1.00, alpha: 1),
+        CGColor(red: 0.08, green: 0.28, blue: 0.88, alpha: 1),
     ] as CFArray
     let gradient = CGGradient(colorsSpace: rgb, colors: colors, locations: [0, 0.55, 1])!
     ctx.drawLinearGradient(gradient,
@@ -69,7 +69,7 @@ func render(size: Int) -> Data {
 
     ctx.saveGState()
     ctx.setShadow(offset: CGSize(width: 0, height: -s * 0.008), blur: s * 0.02,
-                  color: CGColor(red: 0.1, green: 0.05, blue: 0.4, alpha: 0.35))
+                  color: CGColor(red: 0.02, green: 0.1, blue: 0.4, alpha: 0.35))
     ctx.setFillColor(CGColor(red: 1, green: 1, blue: 1, alpha: 1))
     ctx.addPath(star(center: CGPoint(x: s * 0.455, y: s * 0.46), r: s * 0.275))
     ctx.fillPath()

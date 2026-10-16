@@ -28,7 +28,7 @@ enum TriggerStyle: String, CaseIterable, Identifiable {
     case solid
 
     var id: String { rawValue }
-    var title: String { self == .outline ? "Blue outline" : "Solid" }
+    var title: String { self == .outline ? "Light" : "App icon" }
 }
 
 final class Settings: ObservableObject {
@@ -51,25 +51,29 @@ final class Settings: ObservableObject {
     @Published var claudeModel: String { didSet { defaults.set(claudeModel, forKey: "claudeModel") } }
     @Published var codexModel: String { didSet { defaults.set(codexModel, forKey: "codexModel") } }
     @Published var translateTo: String { didSet { defaults.set(translateTo, forKey: "translateTo") } }
+    /// Set once the setup guide has been finished (or skipped).
+    @Published var onboarded: Bool { didSet { defaults.set(onboarded, forKey: "onboarded") } }
 
     private init() {
         defaults.register(defaults: [
             "enabled": true,
             "showForReadOnly": false,
             "provider": ProviderKind.claude.rawValue,
-            "triggerStyle": TriggerStyle.outline.rawValue,
+            "triggerStyle": TriggerStyle.solid.rawValue,
             "updateMode": UpdateMode.notify.rawValue,
             "claudeModel": "haiku",
             "codexModel": "gpt-6-luna",
             "translateTo": "English",
+            "onboarded": false,
         ])
         enabled = defaults.bool(forKey: "enabled")
         showForReadOnly = defaults.bool(forKey: "showForReadOnly")
-        triggerStyle = TriggerStyle(rawValue: defaults.string(forKey: "triggerStyle") ?? "") ?? .outline
+        triggerStyle = TriggerStyle(rawValue: defaults.string(forKey: "triggerStyle") ?? "") ?? .solid
         updateMode = UpdateMode(rawValue: defaults.string(forKey: "updateMode") ?? "") ?? .notify
         provider = ProviderKind(rawValue: defaults.string(forKey: "provider") ?? "") ?? .claude
         claudeModel = defaults.string(forKey: "claudeModel") ?? "haiku"
         codexModel = defaults.string(forKey: "codexModel") ?? "gpt-6-luna"
         translateTo = defaults.string(forKey: "translateTo") ?? "English"
+        onboarded = defaults.bool(forKey: "onboarded")
     }
 }

@@ -6,8 +6,24 @@ All notable changes to this project are documented here. The format follows
 
 ## [Unreleased]
 
+## [0.2.0] - 2026-10-17
+
 ### Added
+- **Custom edits.** A new **Custom** tab on the card: describe the change in your own words ("make it warmer", "turn it into bullet points") or pick a suggestion. A strict guard only allows edits of the selected text; questions and unrelated requests are refused.
+- **Setup guide.** First launch walks through choosing Claude or ChatGPT, picking a model, signing in and allowing Accessibility, with a live preview at the end. Reopen it from Settings → Home → Setup guide.
+- **Several cards at once.** A card open in one app no longer blocks the trigger in another; each card stays with its own window.
+- **Skeleton loading.** The card shows shimmering placeholder lines while the first words arrive.
+- `Usami --render-ui <dir>` snapshots the setup guide, settings pages and menu bar popover in light and dark.
 - `Usami --render-demo <dir> --white-background` renders the demo GIF and a still on a plain white background, for sharing.
+
+### Changed
+- **New look.** A redesigned Settings window with a sidebar (Home, AI model, Translate, Updates), a menu bar popover instead of a plain menu, and a frosted glass card, all in light and dark.
+- **New icon.** A blue app icon, and the selection trigger is now the app's sparkle in a round badge that pops in, ripples and twinkles before settling.
+- Results are always one clean final version: no "Here is…" lead-ins, no wrapping quotes and no dashes.
+- Sign-in tokens are stored in an owner-only file in `~/Library/Application Support/Usami` instead of the Keychain, so updates never ask for your login password. **After updating, sign in once more.**
+
+### Fixed
+- A box-shaped outline around the trigger icon while it animated.
 
 ## [0.1.4] - 2026-10-16
 
@@ -62,7 +78,8 @@ All notable changes to this project are documented here. The format follows
 - In-place replacement of the selection with a clipboard-paste fallback.
 - Universal (Apple Silicon + Intel) DMG packaging script.
 
-[Unreleased]: https://github.com/raousama391/usami/compare/v0.1.4...HEAD
+[Unreleased]: https://github.com/raousama391/usami/compare/v0.2.0...HEAD
+[0.2.0]: https://github.com/raousama391/usami/compare/v0.1.4...v0.2.0
 [0.1.4]: https://github.com/raousama391/usami/compare/v0.1.3...v0.1.4
 [0.1.3]: https://github.com/raousama391/usami/compare/v0.1.2...v0.1.3
 [0.1.2]: https://github.com/raousama391/usami/compare/v0.1.1...v0.1.2
