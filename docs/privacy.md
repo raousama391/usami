@@ -23,7 +23,7 @@ Nothing is sent when you merely select text. Nothing is sent to the project main
 
 | Data | Where |
 | --- | --- |
-| Sign-in tokens (access + refresh) | macOS Keychain, service `io.prodify.usami` |
+| Sign-in tokens (access + refresh) | Private file in `~/Library/Application Support/Usami` (owner-only permissions) |
 | Preferences (provider, model, icon style, language) | macOS user defaults (`io.prodify.usami`) |
 | Diagnostic log | `~/Library/Logs/Usami.log` — metadata only: app bundle ID, field role, selection length, permission state. **Never your text.** |
 
@@ -37,4 +37,4 @@ For apps that reject direct Accessibility writes, Usami briefly puts the rewritt
 curl -fsSL https://raw.githubusercontent.com/raousama391/usami/main/install.sh | bash -s -- uninstall
 ```
 
-This removes the app, Keychain tokens, preferences, the log and the Accessibility entry.
+This removes the app, sign-in tokens, preferences, the log and the Accessibility entry.

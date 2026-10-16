@@ -3,7 +3,7 @@ import CryptoKit
 import Foundation
 
 /// Browser sign-in with a Claude Pro/Max subscription (OAuth 2.0 + PKCE), the same flow byaan
-/// ports from the Claude Code CLI. Tokens live in the Keychain and are handed to the `claude`
+/// ports from the Claude Code CLI. Tokens are kept in a private file in Application Support and are handed to the `claude`
 /// CLI through CLAUDE_CODE_OAUTH_TOKEN. With no stored tokens, the CLI's own login is used.
 @MainActor
 final class ClaudeAuth: ObservableObject {
@@ -14,7 +14,7 @@ final class ClaudeAuth: ObservableObject {
     private static let tokenURL = URL(string: "https://console.anthropic.com/v1/oauth/token")!
     private static let redirectURI = "https://console.anthropic.com/oauth/code/callback"
     private static let scopes = "org:create_api_key user:profile user:inference"
-    private static let keychainAccount = "claude.tokens"
+    private static let tokenAccount = "claude.tokens"
 
     struct Tokens: Codable {
         var accessToken: String
@@ -30,7 +30,7 @@ final class ClaudeAuth: ObservableObject {
     private var pending: (verifier: String, state: String)?
 
     private init() {
-        isSignedIn = Keychain.get(Self.keychainAccount) != nil
+        isSignedIn = TokenStore.get(Self.tokenAccount) != nil
     }
 
     // MARK: Sign in
@@ -96,7 +96,7 @@ final class ClaudeAuth: ObservableObject {
     }
 
     func signOut() {
-        Keychain.delete(Self.keychainAccount)
+        TokenStore.delete(Self.tokenAccount)
         isSignedIn = false
         awaitingCode = false
         pending = nil
@@ -106,7 +106,7 @@ final class ClaudeAuth: ObservableObject {
 
     /// Returns a valid access token, refreshing if needed. Nil means "use the CLI's own login".
     func activeAccessToken() async throws -> String? {
-        guard let data = Keychain.get(Self.keychainAccount),
+        guard let data = TokenStore.get(Self.tokenAccount),
               var tokens = try? JSONDecoder().decode(Tokens.self, from: data) else { return nil }
         if tokens.expiresAt.timeIntervalSinceNow > 300 { return tokens.accessToken }
 
@@ -127,14 +127,14 @@ final class ClaudeAuth: ObservableObject {
             throw ProviderError.other("Claude did not return an access token.")
         }
         let expiresIn = (response["expires_in"] as? Double) ?? 3600
-        let existingRefresh = Keychain.get(Self.keychainAccount)
+        let existingRefresh = TokenStore.get(Self.tokenAccount)
             .flatMap { try? JSONDecoder().decode(Tokens.self, from: $0) }?.refreshToken
         let tokens = Tokens(
             accessToken: access,
             refreshToken: (response["refresh_token"] as? String) ?? existingRefresh ?? "",
             expiresAt: Date().addingTimeInterval(expiresIn)
         )
-        Keychain.set(try JSONEncoder().encode(tokens), for: Self.keychainAccount)
+        TokenStore.set(try JSONEncoder().encode(tokens), for: Self.tokenAccount)
         isSignedIn = true
         return tokens
     }

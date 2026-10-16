@@ -41,6 +41,7 @@ if [ "$MODE" = "uninstall" ]; then
     security delete-generic-password -s "$BUNDLE_ID" -a claude.tokens >/dev/null 2>&1 || true
     security delete-generic-password -s "$BUNDLE_ID" -a codex.tokens  >/dev/null 2>&1 || true
     defaults delete "$BUNDLE_ID" >/dev/null 2>&1 || true
+    rm -rf "$HOME/Library/Application Support/$APP_NAME"
     rm -f "$HOME/Library/Logs/$APP_NAME.log"
     ok "$APP_NAME removed (app, sign-in tokens, preferences and permission)."
     exit 0

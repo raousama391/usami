@@ -15,7 +15,7 @@ Report privately through GitHub: [**Report a vulnerability**](https://github.com
 Usami runs entirely on your Mac and has no server. Things worth knowing when assessing it:
 
 - **Accessibility permission** — required to read the text you select and to write results back. It is granted by you in System Settings and can be revoked at any time.
-- **Sign-in tokens** — the Claude and ChatGPT tokens obtained through browser sign-in are stored in the macOS Keychain (service `io.prodify.usami`). Claude tokens are passed to the local `claude` CLI through the `CLAUDE_CODE_OAUTH_TOKEN` environment variable of a child process.
+- **Sign-in tokens** — the Claude and ChatGPT tokens obtained through browser sign-in are stored in an owner-only file under `~/Library/Application Support/Usami` (not the Keychain, which would prompt for the login password after every update of an ad-hoc-signed build). Claude tokens are passed to the local `claude` CLI through the `CLAUDE_CODE_OAUTH_TOKEN` environment variable of a child process.
 - **Selected text** — sent only to the provider you selected, only when you request a rewrite. See [docs/privacy.md](docs/privacy.md).
 - **Clipboard fallback** — for apps that reject direct Accessibility writes, Usami temporarily places the result on the clipboard to paste it, then restores the previous clipboard contents.
 - **Logs** — `~/Library/Logs/Usami.log` records metadata only (app bundle ID, field role, selection length) and never the text itself.

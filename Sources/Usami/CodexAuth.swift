@@ -2,14 +2,14 @@ import AppKit
 import Foundation
 
 /// Browser sign-in with a ChatGPT subscription through the Codex device-code flow
-/// (same flow byaan uses). Tokens are kept in the Keychain and refreshed on demand.
+/// (same flow byaan uses). Tokens are kept in a private file in Application Support and refreshed on demand.
 @MainActor
 final class CodexAuth: ObservableObject {
     static let shared = CodexAuth()
 
     private static let clientID = "app_EMoamEEZ73f0CkXaXp7hrann"
     private static let base = "https://auth.openai.com"
-    private static let keychainAccount = "codex.tokens"
+    private static let tokenAccount = "codex.tokens"
 
     struct Tokens: Codable {
         var accessToken: String
@@ -30,7 +30,7 @@ final class CodexAuth: ObservableObject {
     private var signInTask: Task<Void, Never>?
 
     private init() {
-        isSignedIn = Keychain.get(Self.keychainAccount) != nil
+        isSignedIn = TokenStore.get(Self.tokenAccount) != nil
     }
 
     // MARK: Sign in (device code)
@@ -57,7 +57,7 @@ final class CodexAuth: ObservableObject {
 
     func signOut() {
         cancelSignIn()
-        Keychain.delete(Self.keychainAccount)
+        TokenStore.delete(Self.tokenAccount)
         isSignedIn = false
     }
 
@@ -113,7 +113,7 @@ final class CodexAuth: ObservableObject {
     // MARK: Token access
 
     func validToken() async throws -> (token: String, accountId: String?) {
-        guard let data = Keychain.get(Self.keychainAccount),
+        guard let data = TokenStore.get(Self.tokenAccount),
               var tokens = try? JSONDecoder().decode(Tokens.self, from: data) else {
             throw ProviderError.notSignedIn("ChatGPT")
         }
@@ -151,7 +151,7 @@ final class CodexAuth: ObservableObject {
             expiresAt: Date().addingTimeInterval(expiresIn),
             accountId: accountId ?? fallback?.accountId
         )
-        Keychain.set(try JSONEncoder().encode(tokens), for: Self.keychainAccount)
+        TokenStore.set(try JSONEncoder().encode(tokens), for: Self.tokenAccount)
         isSignedIn = true
         return tokens
     }

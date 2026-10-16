@@ -4,7 +4,10 @@ import SwiftUI
 /// Floating, non-activating panel — it never steals focus from the app the user is typing in,
 /// so the original selection stays intact until we replace it.
 private final class PopupPanel: NSPanel {
-    override var canBecomeKey: Bool { false }
+    /// Only while the Custom field is open may the panel take keyboard focus (still without
+    /// activating Usami, so the source app stays frontmost and keeps its selection).
+    var allowsKey = false
+    override var canBecomeKey: Bool { allowsKey }
     override var canBecomeMain: Bool { false }
 }
 
@@ -34,6 +37,18 @@ final class PopupController {
 
     var isCardOpen: Bool { cardOpen }
 
+    /// Called once when the user opens the card, and whenever this controller hides.
+    var onCardOpened: (() -> Void)?
+    var onHidden: (() -> Void)?
+    var onAccepted: (() -> Void)?
+
+    private var activationObserver: NSObjectProtocol?
+
+    /// Whether this controller has an open card for exactly this selection.
+    func hasCard(for text: String, pid: pid_t) -> Bool {
+        cardOpen && shownText == text && sourcePID == pid
+    }
+
     init() {
         model.onLayoutChange = { [weak self] in self?.scheduleResize() }
         model.onExpand = { [weak self] in self?.cardOpened() }
@@ -41,18 +56,23 @@ final class PopupController {
         model.onDragEnded = { [weak self] in self?.dragEnded() }
         model.onClose = { [weak self] in self?.hide() }
         model.onAccept = { [weak self] info, text in self?.accept(info, text) }
+        model.onKeyboardNeeded = { [weak self] on in self?.setKeyboard(on) }
 
         let ownPID = ProcessInfo.processInfo.processIdentifier
         if let front = NSWorkspace.shared.frontmostApplication, front.processIdentifier != ownPID {
             lastExternalFrontPID = front.processIdentifier
         }
-        NSWorkspace.shared.notificationCenter.addObserver(
+        activationObserver = NSWorkspace.shared.notificationCenter.addObserver(
             forName: NSWorkspace.didActivateApplicationNotification, object: nil, queue: .main
         ) { [weak self] note in
             guard let app = note.userInfo?[NSWorkspace.applicationUserInfoKey] as? NSRunningApplication,
                   app.processIdentifier != ownPID else { return }
             MainActor.assumeIsolated { self?.lastExternalFrontPID = app.processIdentifier }
         }
+    }
+
+    deinit {
+        if let activationObserver { NSWorkspace.shared.notificationCenter.removeObserver(activationObserver) }
     }
 
     var isVisible: Bool { panel?.isVisible == true }
@@ -71,12 +91,14 @@ final class PopupController {
 
         guard let panel else { return }
         let size = PopupMetrics.triggerSize
-        // Left of the selection, vertically centred on its first line.
+        // Badge centred 18pt left of the selection, vertically centred on its first line.
         let line = selection.firstLineRect ?? selection.rect
         let origin = NSPoint(
-            x: selection.rect.minX - size.width - 2,
+            x: selection.rect.minX - 18 - size.width / 2,
             y: line.midY - size.height / 2
         )
+        // The badge draws its own round shadow; a window shadow would outline the square panel.
+        panel.hasShadow = false
         panel.setFrame(NSRect(origin: origin, size: size), display: true)
         clampToScreen()
         panel.orderFrontRegardless()
@@ -92,18 +114,32 @@ final class PopupController {
     /// Closes everything (✕, Accept, or the app being disabled).
     func hide() {
         stopTracking()
+        panel?.allowsKey = false
         cardOpen = false
         isDragging = false
         panel?.orderOut(nil)
         shownText = nil
         selection = nil
         sourceWindow = nil
+        onHidden?()
     }
 
     // MARK: Private
 
+    private func setKeyboard(_ on: Bool) {
+        guard let panel else { return }
+        panel.allowsKey = on
+        if on {
+            panel.makeKey()
+        } else if panel.isKeyWindow {
+            // Hand typing back to the app the text came from.
+            selection?.app?.activate()
+        }
+    }
+
     private func accept(_ info: SelectionInfo, _ text: String) {
         suppressUntil = Date().addingTimeInterval(1.0)
+        onAccepted?()
         hide()
         DispatchQueue.global(qos: .userInitiated).async {
             AXText.replaceSelection(of: info, with: text)
@@ -125,7 +161,7 @@ final class PopupController {
         panel.collectionBehavior = [.fullScreenAuxiliary]
         panel.backgroundColor = .clear
         panel.isOpaque = false
-        panel.hasShadow = true
+        panel.hasShadow = false
         panel.hidesOnDeactivate = false
         panel.becomesKeyOnlyIfNeeded = true
         panel.appearance = nil   // follow the system light/dark theme
@@ -140,6 +176,7 @@ final class PopupController {
 
     private func cardOpened() {
         cardOpen = true
+        panel?.hasShadow = true
         sourcePID = selection?.app?.processIdentifier ?? 0
         if sourcePID != 0 { lastExternalFrontPID = sourcePID }
         if let element = selection?.element, sourcePID != 0 {
@@ -151,6 +188,7 @@ final class PopupController {
             self?.placeCard()
             self?.startTracking()
         }
+        onCardOpened?()
     }
 
     private func dragEnded() {
@@ -197,6 +235,7 @@ final class PopupController {
             frame.origin.y = top - size.height
         }
         panel.setFrame(frame, display: true)
+        if model.phase == .card { panel.invalidateShadow() }
         if !isDragging { clampToScreen() }
         captureWindowOffset()
     }

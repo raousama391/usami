@@ -35,7 +35,7 @@ Reading other apps' text requires the macOS **Accessibility** permission. macOS 
 | | Claude | ChatGPT |
 | --- | --- | --- |
 | Sign-in | OAuth 2.0 + PKCE in your browser; you paste back the code shown | Device-code flow in your browser; Usami polls until you approve |
-| Storage | macOS Keychain (`io.prodify.usami`) | macOS Keychain (`io.prodify.usami`) |
+| Storage | private file (`~/Library/Application Support/Usami`) | private file (`~/Library/Application Support/Usami`) |
 | Requests | Runs the local `claude` CLI (`-p`, no tools, no session persistence) with the token in `CLAUDE_CODE_OAUTH_TOKEN` | Streams from the Codex Responses endpoint on `chatgpt.com` |
 | Refresh | Automatic before expiry | Automatic before expiry |
 
@@ -56,7 +56,7 @@ The sign-in flows follow the same approach as the open-source [byaan](https://gi
 | `Rewrite.swift` | The actions and their system prompts |
 | `Providers.swift` | Claude and ChatGPT providers |
 | `ClaudeAuth.swift` / `CodexAuth.swift` | Sign-in flows and token refresh |
-| `Keychain.swift`, `Settings.swift`, `SettingsView.swift` | Storage and settings UI |
+| `TokenStore.swift`, `Settings.swift`, `SettingsView.swift` | Storage and settings UI |
 | `DebugLog.swift` | Metadata-only log at `~/Library/Logs/Usami.log` |
 
 ## Known limits
