@@ -116,10 +116,10 @@ fi
 
 cat <<EOF
 
-${BOLD}Almost done — two quick steps:${NC}
-  1. Click the ✨ icon in your menu bar → ${BOLD}Fix Accessibility access…${NC} and switch ${APP_NAME} on.
-  2. Open ${BOLD}Settings…${NC} and sign in with Claude or ChatGPT.
+${BOLD}Almost done:${NC} a short setup guide opens on first launch. It walks you through
+choosing Claude or ChatGPT, signing in, and allowing Accessibility access.
 
-Then select text in any text field and click the ⌄ icon next to it.
+Then select text in any text field and click the ✨ next to it.
+Reopen the guide any time from the ✨ in your menu bar → ${BOLD}Settings…${NC} → Home → Setup guide.
 ${DIM}Uninstall any time: curl -fsSL https://raw.githubusercontent.com/${REPO}/main/install.sh | bash -s -- uninstall${NC}
 EOF

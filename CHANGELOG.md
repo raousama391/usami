@@ -8,11 +8,6 @@ All notable changes to this project are documented here. The format follows
 
 ## [0.2.1] - 2026-10-17
 
-### Fixed
-- The release build failing on GitHub's macOS runner (an ambiguous `cos` call in the provider icon drawing), which left v0.2.0 without a downloadable DMG. 0.2.1 ships everything listed under 0.2.0.
-
-## [0.2.0] - 2026-10-17
-
 ### Added
 - **Custom edits.** A new **Custom** tab on the card: describe the change in your own words ("make it warmer", "turn it into bullet points") or pick a suggestion. A strict guard only allows edits of the selected text; questions and unrelated requests are refused.
 - **Setup guide.** First launch walks through choosing Claude or ChatGPT, picking a model, signing in and allowing Accessibility, with a live preview at the end. Reopen it from Settings → Home → Setup guide.
@@ -29,6 +24,7 @@ All notable changes to this project are documented here. The format follows
 
 ### Fixed
 - A box-shaped outline around the trigger icon while it animated.
+- The release build failing on GitHub's macOS runner (an ambiguous `cos` call in the provider icon drawing). A v0.2.0 tag was cut before this fix and never shipped a download, so 0.2.1 is the first release with these changes.
 
 ## [0.1.4] - 2026-10-16
 
@@ -84,8 +80,7 @@ All notable changes to this project are documented here. The format follows
 - Universal (Apple Silicon + Intel) DMG packaging script.
 
 [Unreleased]: https://github.com/raousama391/usami/compare/v0.2.1...HEAD
-[0.2.1]: https://github.com/raousama391/usami/compare/v0.2.0...v0.2.1
-[0.2.0]: https://github.com/raousama391/usami/compare/v0.1.4...v0.2.0
+[0.2.1]: https://github.com/raousama391/usami/compare/v0.1.4...v0.2.1
 [0.1.4]: https://github.com/raousama391/usami/compare/v0.1.3...v0.1.4
 [0.1.3]: https://github.com/raousama391/usami/compare/v0.1.2...v0.1.3
 [0.1.2]: https://github.com/raousama391/usami/compare/v0.1.1...v0.1.2
